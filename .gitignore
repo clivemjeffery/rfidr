@@ -11,7 +11,8 @@
 *.so.*
 *.dylib
 
-# Executables
+# Executables and output files
 *.exe
 *.out
 *.app
+rfidr

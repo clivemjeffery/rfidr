@@ -1,4 +1,4 @@
 rfidr
 =====
 
-RFID Reader
+RFID Reader - Part of Raspberry Running

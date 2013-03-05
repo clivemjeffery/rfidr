@@ -26,7 +26,42 @@
 
 #include <wiringSerial.h>
 
+// globals for timing -- move to class?
+char str_time[200] = "invalid time\0";
+time_t start_time = 0;
+time_t seconds_after_start = 0;
+
+// 
+// Function to update the current time point in the program.
+// Will get the time from the system using a time() function call
+// and update the globals str_time and seconds_after_start
+//
+int update_time_point() {
+	
+	time_t t;
+	struct tm *tmp;
+	
+	t = time(NULL);
+	
+	if (start_time == 0) { 
+		start_time = t; 
+	} else {
+		seconds_after_start = t - start_time;
+	}
+	
+	tmp = localtime(&t);
+	if (tmp != NULL) {
+		strftime(str_time, sizeof(str_time), "%d/%m/%y %T", tmp);
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
 int main () {
+	
+	// setup timing
+	update_time_point();
 	
 	// Open and rewrite an output file - TODO: unique name
 	FILE *of;
@@ -64,26 +99,18 @@ int main () {
 			printf("*\n");	// No data after block
 		} else {
 			
-			// Got an id, so work out the time - this code to move if possible
-			char str_time[200] = "invalid time\0";
-			time_t t;
-			struct tm *tmp;
-			
-			t = time(NULL);
-			tmp = localtime(&t);
-			if (tmp != NULL) {
-				strftime(str_time, sizeof(str_time), "%d/%m/%y %T", tmp);
-			}
+			// Got an id, so update timing
+			update_time_point();
 			
 			// Strip leading and trailing character
 			strncpy(rfid, &(rx_buffer[1]), 12);
 			rfid[12] = '\0';
 			
-			printf("%s\tat %s\n", rfid, str_time);
+			printf("%s\tat %s\t%u\n", rfid, str_time, seconds_after_start);
 			
 			// re-open output file in append mode
 			of = fopen("test.out", "a");
-			fprintf(of, "%s\tat %s\n", rfid, str_time);
+			fprintf(of, "%s\tat %s\t%u\n", rfid, str_time, seconds_after_start);
 			fclose(of);
 			// close output (don't know when the kill signal is coming
 			
